@@ -46,9 +46,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.select_location_fragment_map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        onLocationSelected()
-
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        onLocationSelected()
     }
 
     private fun onLocationSelected() {
