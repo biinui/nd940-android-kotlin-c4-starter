@@ -13,6 +13,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -22,6 +23,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import kotlinx.android.synthetic.main.fragment_select_location.*
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
@@ -41,8 +43,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
-//        TODO: add style to the map
-
         val mapFragment = childFragmentManager.findFragmentById(R.id.select_location_fragment_map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
@@ -54,8 +54,23 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         onLocationSelected()
     }
 
-    private fun onLocationSelected() {
+    private fun setMapStyle() {
+        try {
+            val success = map.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            requireContext(),
+                            R.raw.map_style
+                    )
+            )
+            if (!success) {
+                Timber.w("Map style parsing failed.")
+            }
+        } catch (e: Exception) {
+            Timber.e("setMapStyle: ${e.localizedMessage}")
+        }
+    }
 
+    private fun onLocationSelected() {
         select_location_button.setOnClickListener {
             val lat = selectedLocation?.latitude
             val lng = selectedLocation?.longitude
@@ -73,15 +88,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
         }
         R.id.hybrid_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
             true
         }
         R.id.satellite_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_SATELLITE
             true
         }
         R.id.terrain_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_TERRAIN
             true
         }
         else -> super.onOptionsItemSelected(item)
@@ -92,6 +111,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = it
             enableMyLocation()
             setOnMapClickListener()
+            setMapStyle()
         }
     }
 
