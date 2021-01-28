@@ -57,8 +57,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun onLocationSelected() {
 
         select_location_button.setOnClickListener {
-            _viewModel.latitude.value = selectedLocation?.latitude
-            _viewModel.longitude.value = selectedLocation?.longitude
+            val lat = selectedLocation?.latitude
+            val lng = selectedLocation?.longitude
+            _viewModel.latitude.value = lat
+            _viewModel.longitude.value = lng
+            _viewModel.reminderSelectedLocationStr.value = "%.5f %.5f".format(lat, lng)
             _viewModel.navigationCommand.value = NavigationCommand.Back
         }
     }
