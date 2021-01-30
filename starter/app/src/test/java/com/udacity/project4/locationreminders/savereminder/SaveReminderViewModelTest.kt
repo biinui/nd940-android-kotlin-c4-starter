@@ -16,10 +16,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -33,20 +35,27 @@ class SaveReminderViewModelTest {
     @get:Rule var instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
-    fun setupViewModel() {
+    fun setup() {
         remindersRepository = FakeRepository()
         app = ApplicationProvider.getApplicationContext()
         saveReminderViewModel = SaveReminderViewModel(app, remindersRepository)
     }
 
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
+
     @Test
     fun onClear_fieldsAreNull() {
-        saveReminderViewModel.reminderTitle.value = "TITLE"
-        saveReminderViewModel.reminderDescription.value = "DESCRIPTION"
-        saveReminderViewModel.reminderSelectedLocationStr.value = "LOCATION"
-        saveReminderViewModel.selectedPOI.value = PointOfInterest(LatLng(1.111, 2.222), "PLACEID", "NAME")
-        saveReminderViewModel.latitude.value = 1.111
-        saveReminderViewModel.longitude.value = 2.222
+        saveReminderViewModel.apply {
+            reminderTitle.value = "TITLE"
+            reminderDescription.value = "DESCRIPTION"
+            reminderSelectedLocationStr.value = "LOCATION"
+            selectedPOI.value = PointOfInterest(LatLng(1.111, 2.222), "PLACEID", "NAME")
+            latitude.value = 1.111
+            longitude.value = 2.222
+        }
 
         saveReminderViewModel.onClear()
 
@@ -62,13 +71,6 @@ class SaveReminderViewModelTest {
     fun saveReminder_togglesLoadingAndSavesReminder() {
         mainCoroutineRule.pauseDispatcher()
 
-        val title       = "TITLE"
-        val description = "DESCRIPTION"
-        val location    = "LOCATION"
-        val latitude    = 1.111
-        val longitude   = 2.222
-        val id          = "UUID"
-
         val newReminder = ReminderDataItem(title, description, location, latitude, longitude, id)
         saveReminderViewModel.saveReminder(newReminder)
         assertThat(saveReminderViewModel.showLoading.getOrAwaitValue(), `is`(true))
@@ -79,14 +81,43 @@ class SaveReminderViewModelTest {
         assertThat(saveReminderViewModel.showToast.getOrAwaitValue(), `is`(app.getString(R.string.reminder_saved)))
 
         runBlocking {
-            val retrievedReminder = remindersRepository.getReminder(id) as Result.Success
+            val retrievedReminder = (remindersRepository.getReminder(id) as Result.Success).data
 
-            assertThat(retrievedReminder.data.title      , `is`(title      ))
-            assertThat(retrievedReminder.data.description, `is`(description))
-            assertThat(retrievedReminder.data.location   , `is`(location   ))
-            assertThat(retrievedReminder.data.latitude   , `is`(latitude   ))
-            assertThat(retrievedReminder.data.longitude  , `is`(longitude  ))
+            assertThat(retrievedReminder.title      , `is`(title      ))
+            assertThat(retrievedReminder.description, `is`(description))
+            assertThat(retrievedReminder.location   , `is`(location   ))
+            assertThat(retrievedReminder.latitude   , `is`(latitude   ))
+            assertThat(retrievedReminder.longitude  , `is`(longitude  ))
         }
+    }
+
+    @Test
+    fun validateEnteredData_titleIsEmpty() {
+        val emptyTitle  = ""
+
+        val noTitleReminder = ReminderDataItem(emptyTitle, description, location, latitude, longitude, id)
+        saveReminderViewModel.validateEnteredData(noTitleReminder)
+
+        assertThat(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), `is`(R.string.err_enter_title))
+    }
+
+    @Test
+    fun validateEnteredData_locationIsNull() {
+        val nullLocation = null
+
+        val noTitleReminder = ReminderDataItem(title, description, nullLocation, latitude, longitude, id)
+        saveReminderViewModel.validateEnteredData(noTitleReminder)
+
+        assertThat(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), `is`(R.string.err_select_location))
+    }
+
+    companion object {
+        const val title       = "TITLE"
+        const val description = "DESCRIPTION"
+        const val location    = "LOCATION"
+        const val latitude    = 1.111
+        const val longitude   = 2.222
+        const val id          = "UUID"
     }
 
 }

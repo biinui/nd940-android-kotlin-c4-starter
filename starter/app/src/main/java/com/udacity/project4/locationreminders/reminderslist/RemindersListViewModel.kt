@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 class RemindersListViewModel(
     app: Application,
-    private val dataSource: RemindersRepository
+    private val repository: RemindersRepository
 ) : BaseViewModel(app) {
     // list that holds the reminder data to be displayed on the UI
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
@@ -24,7 +24,7 @@ class RemindersListViewModel(
         showLoading.value = true
         viewModelScope.launch {
             //interacting with the dataSource has to be through a coroutine
-            val result = dataSource.getReminders()
+            val result = repository.getReminders()
             showLoading.postValue(false)
             when (result) {
                 is Result.Success<*> -> {

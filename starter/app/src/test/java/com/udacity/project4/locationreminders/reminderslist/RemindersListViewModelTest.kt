@@ -5,17 +5,19 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeRepository
+import com.udacity.project4.locationreminders.data.INTENTIONAL_ERROR
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.hasSize
+import org.hamcrest.Matchers.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -28,7 +30,7 @@ class RemindersListViewModelTest {
     @get:Rule var instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
-    fun setupViewModel() {
+    fun setup() {
         remindersRepository = FakeRepository()
         val reminder1 = ReminderDTO("TITLE1", "DESCRIPTION1", "LOCATION1", 1.111, 1.111, "UUID1")
         val reminder2 = ReminderDTO("TITLE2", "DESCRIPTION2", "LOCATION2", 2.222, 2.222, "UUID2")
@@ -37,7 +39,11 @@ class RemindersListViewModelTest {
             remindersRepository.saveReminder(reminder2)
         }
         remindersListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), remindersRepository)
+    }
 
+    @After
+    fun tearDown() {
+        stopKoin()
     }
 
     @Test
@@ -52,6 +58,19 @@ class RemindersListViewModelTest {
         assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(false))
         assertThat(remindersListViewModel.remindersList.getOrAwaitValue(), hasSize(2))
     }
+    @Test
+    fun loadReminders_error() {
+        mainCoroutineRule.pauseDispatcher()
+
+        remindersRepository.setReturnError(true)
+        remindersListViewModel.loadReminders()
+
+        mainCoroutineRule.resumeDispatcher()
+
+        assertThat(remindersListViewModel.remindersList.value, `is`(nullValue()))
+        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), `is`(INTENTIONAL_ERROR))
+    }
+
 
     @Test
     fun loadReminders_showNoData() {
