@@ -1,8 +1,6 @@
 package com.udacity.project4
 
-import android.app.Application
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
@@ -16,14 +14,10 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.locationreminders.RemindersActivity
-import com.udacity.project4.locationreminders.data.RemindersDataSource
-import com.udacity.project4.locationreminders.data.local.LocalDB
-import com.udacity.project4.locationreminders.data.local.RemindersLocalDataSource
 import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
-import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
-import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment
+import com.udacity.project4.util.AutoKoinTest
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.runBlocking
@@ -31,19 +25,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
-import org.koin.test.AutoCloseKoinTest
-import org.koin.test.get
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class RemindersActivityTest : AutoCloseKoinTest() {
+class RemindersActivityTest : AutoKoinTest() {
 
-    private lateinit var dataSource: RemindersDataSource
-    private lateinit var appContext: Application
     private val dataBindingIdlingResource = DataBindingIdlingResource()
 
     @Before
@@ -54,40 +40,6 @@ class RemindersActivityTest : AutoCloseKoinTest() {
     @After
     fun unregisterIdlingResource() {
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
-    }
-
-    @Before
-    fun initKoin() {
-        stopKoin()
-
-        appContext = getApplicationContext()
-
-        val myModule = module {
-            viewModel {
-                RemindersListViewModel(
-                    appContext,
-                    get() as RemindersDataSource
-                )
-            }
-            single {
-                SaveReminderViewModel(
-                    appContext,
-                    get() as RemindersDataSource
-                )
-            }
-            single { RemindersLocalDataSource(get()) as RemindersDataSource }
-            single { LocalDB.createRemindersDao(appContext) }
-        }
-
-        startKoin {
-            modules(listOf(myModule))
-        }
-
-        dataSource = get()
-
-        runBlocking {
-            dataSource.deleteAllReminders()
-        }
     }
 
     @Test
