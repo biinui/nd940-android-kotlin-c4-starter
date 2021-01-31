@@ -96,7 +96,7 @@ class ReminderListFragment : BaseFragment() {
         authViewModel.authenticationState.observe(viewLifecycleOwner, Observer { authState ->
             when(authState) {
                 AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> Unit
-                else -> findNavController().navigate(R.id.authenticationActivity)
+                else -> NavigationCommand.To(ReminderListFragmentDirections.toSaveReminder())
             }
         })
     }
