@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
@@ -13,7 +14,7 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
-import com.google.firebase.auth.FirebaseAuth
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.RemindersDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -23,6 +24,8 @@ import com.udacity.project4.locationreminders.reminderslist.RemindersListViewMod
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment
+import com.udacity.project4.util.DataBindingIdlingResource
+import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -41,6 +44,17 @@ class RemindersActivityTest : AutoCloseKoinTest() {
 
     private lateinit var dataSource: RemindersDataSource
     private lateinit var appContext: Application
+    private val dataBindingIdlingResource = DataBindingIdlingResource()
+
+    @Before
+    fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(dataBindingIdlingResource)
+    }
+
+    @After
+    fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
+    }
 
     @Before
     fun initKoin() {
@@ -76,38 +90,40 @@ class RemindersActivityTest : AutoCloseKoinTest() {
         }
     }
 
-    @Before
-    fun login(): Unit {
-        runBlocking {
-            val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+    @Test
+    fun login() {
+        val activityScenario = ActivityScenario.launch(AuthenticationActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
 
-            onView(withId(R.id.login_button)).perform(click())
+        val device = UiDevice.getInstance(getInstrumentation())
+        device.waitForIdle(1_000)
 
-            onView(withText(R.string.fui_sign_in_with_email)).perform(click())
+        onView(withId(R.id.login_button)).perform(click())
 
-            onView(withId(R.id.email)).perform(typeText("example@meow.com"), closeSoftKeyboard())
-            onView(withId(R.id.button_next)).perform(click())
+        onView(withText(R.string.fui_sign_in_with_email)).perform(click())
 
-            val device = UiDevice.getInstance(getInstrumentation())
-            device.waitForIdle(1_000)
+        onView(withId(R.id.email)).perform(typeText("example@meow.com"), closeSoftKeyboard())
+        onView(withId(R.id.button_next)).perform(click())
 
-            onView(withId(R.id.password)).perform(typeText("M!1kshake"), closeSoftKeyboard())
-            onView(withId(R.id.button_done)).perform(click())
+        device.waitForIdle(1_000)
 
-            val reminderListFragmentStr = ReminderListFragment::class.java.`package`.name
-            device.wait(Until.hasObject(By.pkg(reminderListFragmentStr)), 3_000)
+        onView(withId(R.id.password)).perform(typeText("M!1kshake"), closeSoftKeyboard())
+        onView(withId(R.id.button_done)).perform(click())
 
-            val noDataStr = appContext.getString(R.string.no_data)
-            onView(withId(R.id.noDataTextView)).check(matches(withText(noDataStr)))
+        val reminderListFragmentStr = ReminderListFragment::class.java.`package`.name
+        device.wait(Until.hasObject(By.pkg(reminderListFragmentStr)), 3_000)
 
-            activityScenario.close()
-        }
+        val noDataStr = appContext.getString(R.string.no_data)
+        onView(withId(R.id.noDataTextView)).check(matches(withText(noDataStr)))
+
+        activityScenario.close()
     }
 
     @Test
     fun saveNewReminder() {
         runBlocking {
             val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+            dataBindingIdlingResource.monitorActivity(activityScenario)
 
             onView(withId(R.id.addReminderFAB)).perform(click())
 
@@ -143,10 +159,22 @@ class RemindersActivityTest : AutoCloseKoinTest() {
         }
     }
 
-    @After
-    fun logout() {
-        val firebaseAuth = FirebaseAuth.getInstance()
-        firebaseAuth.signOut()
+    @Test
+    fun selectLocationFragment_doubleUpButton() {
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        onView(withContentDescription("Navigate up")).perform(click())
+        onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
+
+        onView(withContentDescription("Navigate up")).perform(click())
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+
+        activityScenario.close()
     }
 
 }
