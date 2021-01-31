@@ -1,11 +1,12 @@
-package com.udacity.project4.locationreminders.data
+package com.udacity.project4.locationreminders.data.local
 
+import com.udacity.project4.locationreminders.data.RemindersDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 
 const val INTENTIONAL_ERROR = "Intentional Error for Testing"
 
-class FakeRepository : RemindersRepository {
+class FakeAndroidTestDataSource : RemindersDataSource {
     private var remindersServiceData: LinkedHashMap<String, ReminderDTO> = LinkedHashMap()
     private var shouldReturnError = false
 
@@ -26,10 +27,10 @@ class FakeRepository : RemindersRepository {
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
         val reminder = remindersServiceData[id]
-        if (reminder == null) {
-            return Result.Error("Reminder not found.")
+        return if (reminder == null) {
+            Result.Error("Reminder not found.")
         } else {
-            return Result.Success(reminder)
+            Result.Success(reminder)
         }
     }
 

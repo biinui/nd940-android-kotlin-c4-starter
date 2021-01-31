@@ -8,7 +8,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.MainCoroutineRule
-import com.udacity.project4.locationreminders.data.FakeRepository
+import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
@@ -28,7 +28,7 @@ import org.koin.core.context.stopKoin
 class SaveReminderViewModelTest {
 
     private lateinit var saveReminderViewModel: SaveReminderViewModel
-    private lateinit var remindersRepository: FakeRepository
+    private lateinit var remindersRepository: FakeDataSource
     private lateinit var app: Application
 
     @get:Rule var mainCoroutineRule = MainCoroutineRule()
@@ -36,7 +36,7 @@ class SaveReminderViewModelTest {
 
     @Before
     fun setup() {
-        remindersRepository = FakeRepository()
+        remindersRepository = FakeDataSource()
         app = ApplicationProvider.getApplicationContext()
         saveReminderViewModel = SaveReminderViewModel(app, remindersRepository)
     }

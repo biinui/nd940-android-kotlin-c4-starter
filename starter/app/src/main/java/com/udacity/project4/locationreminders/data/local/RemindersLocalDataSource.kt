@@ -1,6 +1,6 @@
 package com.udacity.project4.locationreminders.data.local
 
-import com.udacity.project4.locationreminders.data.RemindersRepository
+import com.udacity.project4.locationreminders.data.RemindersDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import kotlinx.coroutines.*
@@ -13,10 +13,10 @@ import kotlinx.coroutines.*
  * @param remindersDao the dao that does the Room db operations
  * @param ioDispatcher a coroutine dispatcher to offload the blocking IO tasks
  */
-class RemindersLocalRepository(
+class RemindersLocalDataSource(
     private val remindersDao: RemindersDao,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-) : RemindersRepository {
+) : RemindersDataSource {
 
     /**
      * Get the reminders list from the local db

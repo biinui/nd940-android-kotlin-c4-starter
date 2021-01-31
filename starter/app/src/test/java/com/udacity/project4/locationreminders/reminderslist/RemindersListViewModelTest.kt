@@ -4,7 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
-import com.udacity.project4.locationreminders.data.FakeRepository
+import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.INTENTIONAL_ERROR
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
@@ -24,14 +24,14 @@ import org.koin.core.context.stopKoin
 class RemindersListViewModelTest {
 
     private lateinit var remindersListViewModel: RemindersListViewModel
-    private lateinit var remindersRepository: FakeRepository
+    private lateinit var remindersRepository: FakeDataSource
 
     @get:Rule var mainCoroutineRule = MainCoroutineRule()
     @get:Rule var instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
     fun setup() {
-        remindersRepository = FakeRepository()
+        remindersRepository = FakeDataSource()
         val reminder1 = ReminderDTO("TITLE1", "DESCRIPTION1", "LOCATION1", 1.111, 1.111, "UUID1")
         val reminder2 = ReminderDTO("TITLE2", "DESCRIPTION2", "LOCATION2", 2.222, 2.222, "UUID2")
         runBlocking {
