@@ -72,11 +72,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun onLocationSelected() {
         select_location_button.setOnClickListener {
-            val lat = selectedLocation?.latitude
-            val lng = selectedLocation?.longitude
-            _viewModel.latitude.value = lat
-            _viewModel.longitude.value = lng
-            _viewModel.reminderSelectedLocationStr.value = "%.5f %.5f".format(lat, lng)
+            _viewModel.latitude.value = selectedLocation?.latitude
+            _viewModel.longitude.value = selectedLocation?.longitude
             _viewModel.navigationCommand.value = NavigationCommand.Back
         }
     }
@@ -111,6 +108,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = it
             enableMyLocation()
             setOnMapClickListener()
+            setOnPOIClickListener()
             setMapStyle()
         }
     }
@@ -180,6 +178,25 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
             )
 
+            _viewModel.reminderSelectedLocationStr.value = "%.5f %.5f".format(latLng.latitude, latLng.longitude)
+            select_location_button.isEnabled = true
+        }
+    }
+
+    private fun setOnPOIClickListener() {
+        map.setOnPoiClickListener { poi ->
+            selectedLocation = poi.latLng
+
+            map.clear()
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
+            )
+
+            poiMarker.showInfoWindow()
+            _viewModel.reminderSelectedLocationStr.value = poi.name
             select_location_button.isEnabled = true
         }
     }

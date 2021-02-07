@@ -9,9 +9,7 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
+import androidx.test.uiautomator.*
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
@@ -57,7 +55,9 @@ class RemindersActivityTest : AutoKoinTest() {
         onView(withId(R.id.email)).perform(typeText("example@meow.com"), closeSoftKeyboard())
         onView(withId(R.id.button_next)).perform(click())
 
-        device.waitForIdle(3_000)
+        val emailText: UiObject = device.findObject(UiSelector().text("example@meow.com"))
+        emailText.waitUntilGone(2_000)
+        device.waitForIdle()
 
         onView(withId(R.id.password)).perform(typeText("M!1kshake"), closeSoftKeyboard())
         onView(withId(R.id.button_done)).perform(click())
