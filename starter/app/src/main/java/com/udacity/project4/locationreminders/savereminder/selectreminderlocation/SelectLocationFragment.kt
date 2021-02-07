@@ -1,6 +1,5 @@
 package com.udacity.project4.locationreminders.savereminder.selectreminderlocation
 
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
@@ -15,6 +14,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -122,10 +122,30 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map.uiSettings.isMyLocationButtonEnabled = true
             // TODO: zoom to the user location after taking his permission
         } else {
-            ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
-                    REQUEST_LOCATION_PERMISSION
+            requestLocationPermission()
+        }
+    }
+
+    private fun requestLocationPermission() {
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+            requireActivity(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+        if (shouldProvideRationale) {
+            Snackbar.make( binding.root
+                         , R.string.location_required_error
+                         , Snackbar.LENGTH_INDEFINITE
+                         ).setAction(R.string.permit) { requestPermissions( arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                                                          , REQUEST_LOCATION_PERMISSION
+                                                                          )
+                                                  }
+                          .setDuration(Snackbar.LENGTH_LONG)
+                          .show()
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                REQUEST_LOCATION_PERMISSION
             )
         }
     }
@@ -138,6 +158,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
+            } else {
+                Snackbar.make( binding.root
+                    , R.string.permission_denied_explanation
+                    , Snackbar.LENGTH_INDEFINITE
+                ).setAction(R.string.dismiss) { }
+                 .show()
             }
         }
     }

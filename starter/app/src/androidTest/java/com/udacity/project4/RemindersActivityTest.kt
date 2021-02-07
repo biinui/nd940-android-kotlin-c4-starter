@@ -57,12 +57,12 @@ class RemindersActivityTest : AutoKoinTest() {
         onView(withId(R.id.email)).perform(typeText("example@meow.com"), closeSoftKeyboard())
         onView(withId(R.id.button_next)).perform(click())
 
-        device.waitForIdle(1_000)
+        device.waitForIdle(3_000)
 
         onView(withId(R.id.password)).perform(typeText("M!1kshake"), closeSoftKeyboard())
         onView(withId(R.id.button_done)).perform(click())
 
-        val reminderListFragmentStr = ReminderListFragment::class.java.`package`.name
+        val reminderListFragmentStr = ReminderListFragment::class.java.`package`?.name
         device.wait(Until.hasObject(By.pkg(reminderListFragmentStr)), 3_000)
 
         val noDataStr = appContext.getString(R.string.no_data)
@@ -87,7 +87,7 @@ class RemindersActivityTest : AutoKoinTest() {
             onView(withId(R.id.selectLocation)).perform(click())
 
             val device = UiDevice.getInstance(getInstrumentation())
-            val selectLocationFragmentPkgName = SelectLocationFragment::class.java.`package`.name
+            val selectLocationFragmentPkgName = SelectLocationFragment::class.java.`package`?.name
             device.wait(Until.hasObject(By.pkg(selectLocationFragmentPkgName)), 3_000)
 
             val x = device.displayWidth / 2
@@ -99,7 +99,7 @@ class RemindersActivityTest : AutoKoinTest() {
 
             onView(withId(R.id.select_location_button)).perform(click())
 
-            val saveReminderFragmentPkgName = SaveReminderFragment::class.java.`package`.name
+            val saveReminderFragmentPkgName = SaveReminderFragment::class.java.`package`?.name
             device.wait(Until.hasObject(By.pkg(saveReminderFragmentPkgName)), 3_000)
 
             onView(withId(R.id.saveReminder)).perform(click())
